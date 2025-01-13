@@ -81,7 +81,7 @@ Route::delete('/user/{id}', function ($id) {
 });
 
 // ---------
-// this is where the requests for location
+// this is where the requests for location begin
 // ---------
 
 Route::get('/location', function () {
@@ -152,4 +152,78 @@ Route::delete('/location/{id}', function ($id) {
         return response()->json(['message' => 'location not found'], 404);
     }
     return response()->json(['message' => 'location deleted successfully']);
+});
+
+// ---------
+// this is where the requests for city begin
+// ---------
+
+Route::get('/city', function () {
+    $city = DB::select('SELECT * FROM city');
+    return response()->json($city);
+});
+
+// Get a city by ID
+Route::get('/city/{id}', function ($id) {
+    $city = DB::select('SELECT * FROM city WHERE id = ?', [$id]);
+    if (empty($city)) {
+        return response()->json(['message' => 'city not found'], 404);
+    }
+    return response()->json($city[0]);
+});
+
+
+// Create a new city
+Route::post('/city', function (\Illuminate\Http\Request $request) {
+    $name = $request->input('name');
+    $street = $request->input('street');
+
+    DB::insert('INSERT INTO city (name, street) VALUES (?, ?)', [$name, $street]);
+
+    return response()->json(['message' => 'city created successfully'], 201);
+});
+
+// Update a city by ID
+Route::put('/city/{id}', function (\Illuminate\Http\Request $request, $id) {
+    $name = $request->input('name');
+    $street = $request->input('street');
+
+    $affected = DB::update('UPDATE city SET name = ?, street = ? WHERE id = ?', [$name, $street]);
+
+    if ($affected === 0) {
+        return response()->json(['message' => 'city not found or no changes made'], 404);
+    }
+    return response()->json(['message' => 'city updated successfully']);
+});
+
+Route::patch('/city/{id}', function (\Illuminate\Http\Request $request, $id) {
+    //AI was used for this request
+    $fields = $request->only(['name', 'street']); // Get only provided fields
+    if (empty($fields)) {
+        return response()->json(['message' => 'No data provided for update'], 400); // No fields to update
+    }
+
+    $setClause = [];
+    $bindings = [];
+    foreach ($fields as $key => $value) {
+        $setClause[] = "$key = ?";
+        $bindings[] = $value;
+    }
+    $bindings[] = $id; // Add the ID to the bindings
+
+    $query = 'UPDATE city SET ' . implode(', ', $setClause) . ' WHERE id = ?';
+    $affected = DB::update($query, $bindings);
+    if ($affected === 0) {
+        return response()->json(['message' => 'city not found or no changes made'], 404);
+    }
+    return response()->json(['message' => 'city updated successfully']);
+});
+
+// Delete a city by ID
+Route::delete('/city/{id}', function ($id) {
+    $deleted = DB::delete('DELETE FROM city WHERE id = ?', [$id]);
+    if ($deleted === 0) {
+        return response()->json(['message' => 'city not found'], 404);
+    }
+    return response()->json(['message' => 'city deleted successfully']);
 });
