@@ -45,6 +45,9 @@ Route::patch('/user/{id}', function (\Illuminate\Http\Request $request, $id) {
     $setClause = [];
     $bindings = [];
     foreach ($fields as $key => $value) {
+        if ($key === 'password') {
+            $value = bcrypt($value); 
+        }
         $setClause[] = "$key = ?";
         $bindings[] = $value;
     }
