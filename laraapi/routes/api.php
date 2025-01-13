@@ -227,3 +227,204 @@ Route::delete('/city/{id}', function ($id) {
     }
     return response()->json(['message' => 'city deleted successfully']);
 });
+
+// ---------
+// this is where the requests for food begin
+// ---------
+
+Route::get('/food', function () {
+    $food = DB::select('SELECT * FROM food');
+    return response()->json($food);
+});
+
+// Get a food by ID
+Route::get('/food/{id}', function ($id) {
+    $food = DB::select('SELECT * FROM food WHERE id = ?', [$id]);
+    if (empty($food)) {
+        return response()->json(['message' => 'food not found'], 404);
+    }
+    return response()->json($food[0]);
+});
+
+
+// Create a new food
+Route::post('/food', function (\Illuminate\Http\Request $request) {
+    $name = $request->input('name');
+    $calories_per_kilo = $request->input('calories_per_kilo');
+
+    DB::insert('INSERT INTO food (name, calories_per_kilo) VALUES (?, ?)', [$name, $calories_per_kilo]);
+
+    return response()->json(['message' => 'food created successfully'], 201);
+});
+
+// Update a food by ID
+Route::put('/food/{id}', function (\Illuminate\Http\Request $request, $id) {
+    $name = $request->input('name');
+    $calories_per_kilo = $request->input('calories_per_kilo');
+
+    $affected = DB::update('UPDATE food SET name = ?, calories_per_kilo = ? WHERE id = ?', [$name, $calories_per_kilo]);
+
+    if ($affected === 0) {
+        return response()->json(['message' => 'food not found or no changes made'], 404);
+    }
+    return response()->json(['message' => 'food updated successfully']);
+});
+
+Route::patch('/food/{id}', function (\Illuminate\Http\Request $request, $id) {
+    //AI was used for this request
+    $fields = $request->only(['name', 'calories_per_kilo']); // Get only provided fields
+    if (empty($fields)) {
+        return response()->json(['message' => 'No data provided for update'], 400); // No fields to update
+    }
+
+    $setClause = [];
+    $bindings = [];
+    foreach ($fields as $key => $value) {
+        $setClause[] = "$key = ?";
+        $bindings[] = $value;
+    }
+    $bindings[] = $id; // Add the ID to the bindings
+
+    $query = 'UPDATE food SET ' . implode(', ', $setClause) . ' WHERE id = ?';
+    $affected = DB::update($query, $bindings);
+    if ($affected === 0) {
+        return response()->json(['message' => 'food not found or no changes made'], 404);
+    }
+    return response()->json(['message' => 'food updated successfully']);
+});
+
+// Delete a food by ID
+Route::delete('/food/{id}', function ($id) {
+    $deleted = DB::delete('DELETE FROM food WHERE id = ?', [$id]);
+    if ($deleted === 0) {
+        return response()->json(['message' => 'food not found'], 404);
+    }
+    return response()->json(['message' => 'food deleted successfully']);
+});
+
+// ---------
+// this is where the requests for supplies begin
+// ---------
+
+Route::get('/supplies', function () {
+    $supplies = DB::select('SELECT * FROM supplies');
+    return response()->json($supplies);
+});
+
+// Get a supplies by ID
+Route::get('/supplies/{id}', function ($id) {
+    $supplies = DB::select('SELECT * FROM supplies WHERE id = ?', [$id]);
+    if (empty($supplies)) {
+        return response()->json(['message' => 'supplies not found'], 404);
+    }
+    return response()->json($supplies[0]);
+});
+
+
+// Create a new supplies
+Route::post('/supplies', function (\Illuminate\Http\Request $request) {
+    $name = $request->input('name');
+
+    DB::insert('INSERT INTO supplies (name) VALUES (?)', [$name]);
+
+    return response()->json(['message' => 'supplies created successfully'], 201);
+});
+
+
+Route::patch('/supplies/{id}', function (\Illuminate\Http\Request $request, $id) {
+    //AI was used for this request
+    $fields = $request->only(['name' ]); // Get only provided fields
+    if (empty($fields)) {
+        return response()->json(['message' => 'No data provided for update'], 400); // No fields to update
+    }
+
+    $setClause = [];
+    $bindings = [];
+    foreach ($fields as $key => $value) {
+        $setClause[] = "$key = ?";
+        $bindings[] = $value;
+    }
+    $bindings[] = $id; // Add the ID to the bindings
+
+    $query = 'UPDATE supplies SET ' . implode(', ', $setClause) . ' WHERE id = ?';
+    $affected = DB::update($query, $bindings);
+    if ($affected === 0) {
+        return response()->json(['message' => 'supplies not found or no changes made'], 404);
+    }
+    return response()->json(['message' => 'supplies updated successfully']);
+});
+
+// Delete a supplies by ID
+Route::delete('/supplies/{id}', function ($id) {
+    $deleted = DB::delete('DELETE FROM supplies WHERE id = ?', [$id]);
+    if ($deleted === 0) {
+        return response()->json(['message' => 'supplies not found'], 404);
+    }
+    return response()->json(['message' => 'supplies deleted successfully']);
+});
+
+
+// ---------
+// this is where the requests for family_member begin
+// ---------
+
+Route::get('/family_member', function () {
+    $family_member = DB::select('SELECT * FROM family_member');
+    return response()->json($family_member);
+});
+
+// Get a family_member by ID
+Route::get('/family_member/{id}', function ($id) {
+    $family_member = DB::select('SELECT * FROM family_member WHERE id = ?', [$id]);
+    if (empty($family_member)) {
+        return response()->json(['message' => 'family_member not found'], 404);
+    }
+    return response()->json($family_member[0]);
+});
+
+
+// Create a new family_member
+Route::post('/family_member', function (\Illuminate\Http\Request $request) {
+    $name = $request->input('name');
+    $lastname = $request->input('lastname');
+    $gender = $request->input('gender');
+    $height = $request->input('height');
+    $weight = $request->input('weight');
+    $diet = $request->input('diet');
+    DB::insert('INSERT INTO family_member (name,lastname,gender,height,weight,diet) VALUES (?,?)', [$name, $lastname,$gender,$height,$weight,$diet]);
+
+    return response()->json(['message' => 'family_member created successfully'], 201);
+});
+
+
+Route::patch('/family_member/{id}', function (\Illuminate\Http\Request $request, $id) {
+    //AI was used for this request
+    $fields = $request->only(['name','lastname','gender','height', 'weight','diet' ]); // Get only provided fields
+    if (empty($fields)) {
+        return response()->json(['message' => 'No data provided for update'], 400); // No fields to update
+    }
+
+    $setClause = [];
+    $bindings = [];
+    foreach ($fields as $key => $value) {
+        $setClause[] = "$key = ?";
+        $bindings[] = $value;
+    }
+    $bindings[] = $id; // Add the ID to the bindings
+
+    $query = 'UPDATE family_member SET ' . implode(', ', $setClause) . ' WHERE id = ?';
+    $affected = DB::update($query, $bindings);
+    if ($affected === 0) {
+        return response()->json(['message' => 'family_member not found or no changes made'], 404);
+    }
+    return response()->json(['message' => 'family_member updated successfully']);
+});
+
+// Delete a family_member by ID
+Route::delete('/family_member/{id}', function ($id) {
+    $deleted = DB::delete('DELETE FROM family_member WHERE id = ?', [$id]);
+    if ($deleted === 0) {
+        return response()->json(['message' => 'family_member not found'], 404);
+    }
+    return response()->json(['message' => 'family_member deleted successfully']);
+});
