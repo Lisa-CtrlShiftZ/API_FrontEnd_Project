@@ -23,34 +23,21 @@ Route::get('/user/{id}', function ($id) {
 Route::post('/user', function (\Illuminate\Http\Request $request) {
     $name = $request->input('name');
     $email = $request->input('email');
-    $password = $request->input('password');
-    $streetnumber = $request->input('streetnumber');
-    $location_id = $request->input('location_id');
-
-    DB::insert('INSERT INTO user (name, email,password, streetnumber,location_id) VALUES (?, ?, ?, ?, ?)', [$name, $email,$password,$streetnumber,$location_id]);
+    $hashedPassword = bcrypt($request->input('password'));
+    $streetnumber = $request->input('streetnumber') ?? null;
+    $location_id = $request->input('location_id') ?? null;
+    $max_water = $request->input('max_water') ?? null;
+    $max_food = $request->input('max_food') ?? null;
+    DB::insert('INSERT INTO user (name, email,password, streetnumber,location_id,max_water,max_food) VALUES (?, ?, ?, ?, ?,?,?)', [$name, $email, $hashedPassword, $streetnumber, $location_id,$max_water, $max_food]);
 
     return response()->json(['message' => 'user created successfully'], 201);
 });
 
-// Update a user by ID
-Route::put('/user/{id}', function (\Illuminate\Http\Request $request, $id) {
-    $name = $request->input('name');
-    $email = $request->input('email');
-    $password = $request->input('password');
-    $streetnumber = $request->input('streetnumber');
-    $location_id = $request->input('location_id');
 
-    $affected = DB::update('UPDATE user SET name = ?, email = ?,password = ?,streetnumber = ?,location_id = ? WHERE id = ?', [$name, $email, $password, $streetnumber, $location_id, $id]);
-
-    if ($affected === 0) {
-        return response()->json(['message' => 'user not found or no changes made'], 404);
-    }
-    return response()->json(['message' => 'user updated successfully']);
-});
 
 Route::patch('/user/{id}', function (\Illuminate\Http\Request $request, $id) {
     //AI was used for this request
-    $fields = $request->only(['name', 'email', 'password', 'streetnumber', 'location_id']); // Get only provided fields
+    $fields = $request->only(['name', 'email', 'password', 'streetnumber', 'location_id','max_water', 'max_food']); // Get only provided fields
     if (empty($fields)) {
         return response()->json(['message' => 'No data provided for update'], 400); // No fields to update
     }
@@ -454,7 +441,7 @@ Route::post('/user_family_member', function (\Illuminate\Http\Request $request) 
     $user_id = $request->input('User_id');
     $family_member_id = $request->input('family_member_id');
 
-    DB::insert('INSERT INTO user_family_member (user_id, family_member_id) VALUES (?,?)', [$user_id,$family_member_id];
+    DB::insert('INSERT INTO user_family_member (user_id, family_member_id) VALUES (?,?)', [$user_id,$family_member_id]);
     return response()->json(['message' => 'user_family_member created successfully'], 201);
 });
 
@@ -517,7 +504,7 @@ Route::post('/user_food', function (\Illuminate\Http\Request $request) {
     $expiration_date = $request->input('expiration_date');
     $amount = $request->input('amount');
 
-    DB::insert('INSERT INTO user_food (user_id, food_id,expiration_date,amount) VALUES (?,?,?,?)', [$user_id,$food_id,$expiration_date,$amount];
+    DB::insert('INSERT INTO user_food (user_id, food_id,expiration_date,amount) VALUES (?,?,?,?)', [$user_id,$food_id,$expiration_date,$amount]);
     return response()->json(['message' => 'user_food created successfully'], 201);
 });
 
@@ -579,7 +566,7 @@ Route::post('/user_supplies', function (\Illuminate\Http\Request $request) {
     $food_id = $request->input('food_id');
     $quantity = $request->input('quantity');
 
-    DB::insert('INSERT INTO user_supplies (user_id, food_id,quantity) VALUES (?,?,?,?)', [$user_id,$food_id,$quantity];
+    DB::insert('INSERT INTO user_supplies (user_id, food_id,quantity) VALUES (?,?,?,?)', [$user_id,$food_id,$quantity]);
     return response()->json(['message' => 'user_supplies created successfully'], 201);
 });
 
