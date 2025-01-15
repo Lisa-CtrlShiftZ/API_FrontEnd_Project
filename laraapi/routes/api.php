@@ -1,6 +1,7 @@
 <?php
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 // use Illuminate\Support\Facades\DB;
 
 // Get all users
@@ -69,6 +70,25 @@ Route::delete('/user/{id}', function ($id) {
     }
     return response()->json(['message' => 'user deleted successfully']);
 });
+
+// ---------
+// this is where the requests for login begin
+// ---------
+
+Route::post('/login', function (Request $request){
+    $credentials = $request->only('email', 'password');
+
+        if (Auth::attempt($credentials)) {
+
+            return response()->json([
+                'token' => Str::random(80),
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Invalid credentials'
+        ], 401);
+} );
 
 // ---------
 // this is where the requests for location begin
