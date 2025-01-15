@@ -381,7 +381,8 @@ Route::post('/family_member', function (\Illuminate\Http\Request $request) {
     $height = $request->input('height');
     $weight = $request->input('weight');
     $diet = $request->input('diet');
-    DB::insert('INSERT INTO family_member (name,lastname,gender,height,weight,diet) VALUES (?,?,?,?,?,?)', [$name, $lastname,$gender,$height,$weight,$diet]);
+    $date_of_birth = $request->input('date_of_birth');
+    DB::insert('INSERT INTO family_member (name,lastname,gender,height,weight,diet,date_of_birth) VALUES (?,?,?,?,?,?,?)', [$name, $lastname,$gender,$height,$weight,$diet,$date_of_birth]);
 
     return response()->json(['message' => 'family_member created successfully'], 201);
 });
@@ -389,7 +390,7 @@ Route::post('/family_member', function (\Illuminate\Http\Request $request) {
 
 Route::patch('/family_member/{id}', function (\Illuminate\Http\Request $request, $id) {
     //AI was used for this request
-    $fields = $request->only(['name','lastname','gender','height', 'weight','diet' ]); // Get only provided fields
+    $fields = $request->only(['name','lastname','gender','height', 'weight','diet','date_of_birth' ]); // Get only provided fields
     if (empty($fields)) {
         return response()->json(['message' => 'No data provided for update'], 400); // No fields to update
     }
