@@ -376,7 +376,7 @@ Route::get('/family_member/{id}', function ($id) {
 // Create a new family_member
 Route::post('/family_member', function (\Illuminate\Http\Request $request) {
     $name = $request->input('name');
-    $lastname = $request->input('lastname');
+    $lastname = $request->input('last_name');
     $gender = $request->input('gender');
     $height = $request->input('height');
     $weight = $request->input('weight');
@@ -390,7 +390,7 @@ Route::post('/family_member', function (\Illuminate\Http\Request $request) {
 
 Route::patch('/family_member/{id}', function (\Illuminate\Http\Request $request, $id) {
     //AI was used for this request
-    $fields = $request->only(['name','lastname','gender','height', 'weight','diet','date_of_birth' ]); // Get only provided fields
+    $fields = $request->only(['name','last_name','gender','height', 'weight','diet','date_of_birth' ]); // Get only provided fields
     if (empty($fields)) {
         return response()->json(['message' => 'No data provided for update'], 400); // No fields to update
     }
