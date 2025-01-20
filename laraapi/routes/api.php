@@ -28,9 +28,18 @@ Route::post('/user', function (\Illuminate\Http\Request $request) {
     $location_id = $request->input('location_id') ?? null;
     $max_water = $request->input('max_water') ?? null;
     $max_food = $request->input('max_food') ?? null;
-    DB::insert('INSERT INTO user (name, email,password, streetnumber,location_id,max_water,max_food) VALUES (?, ?, ?, ?, ?,?,?)', [$name, $email, $hashedPassword, $streetnumber, $location_id,$max_water, $max_food]);
+    
+    $id = DB::table('user')->insertGetId([
+        'name' => $name,
+        'email' => $email,
+        'password' => $hashedPassword,
+        'streetnumber' => $streetnumber,
+        'location_id' => $location_id,
+        'max_water' => $max_water,
+        'max_food' => $max_food,
+    ]);
+    return response()->json(['message' => 'User created successfully', 'id' => $id], 201);
 
-    return response()->json(['message' => 'user created successfully'], 201);
 });
 
 
@@ -242,9 +251,11 @@ Route::post('/food', function (\Illuminate\Http\Request $request) {
     $name = $request->input('name');
     $calories_per_kilo = $request->input('calories_per_kilo');
 
-    DB::insert('INSERT INTO food (name, calories_per_kilo) VALUES (?, ?)', [$name, $calories_per_kilo]);
-
-    return response()->json(['message' => 'food created successfully'], 201);
+   $id = DB::table('food')->insertGetId([
+        'name' => $name,
+        'calories_per_kilo' => $calories_per_kilo,
+    ]);
+    return response()->json(['message' => 'User created successfully', 'id' => $id], 201);
 });
 
 // Update a food by ID
@@ -315,9 +326,10 @@ Route::get('/supplies/{id}', function ($id) {
 Route::post('/supplies', function (\Illuminate\Http\Request $request) {
     $name = $request->input('name');
 
-    DB::insert('INSERT INTO supplies (name) VALUES (?)', [$name]);
-
-    return response()->json(['message' => 'supplies created successfully'], 201);
+    $id = DB::table('supplies')->insertGetId([
+        'name' => $name,
+    ]);
+    return response()->json(['message' => 'User created successfully', 'id' => $id], 201);
 });
 
 
@@ -376,15 +388,23 @@ Route::get('/family_member/{id}', function ($id) {
 // Create a new family_member
 Route::post('/family_member', function (\Illuminate\Http\Request $request) {
     $name = $request->input('name');
-    $lastname = $request->input('last_name');
+    $last_name = $request->input('last_name');
     $gender = $request->input('gender');
     $height = $request->input('height');
     $weight = $request->input('weight');
     $diet = $request->input('diet');
     $date_of_birth = $request->input('date_of_birth');
-    DB::insert('INSERT INTO family_member (name,lastname,gender,height,weight,diet,date_of_birth) VALUES (?,?,?,?,?,?,?)', [$name, $lastname,$gender,$height,$weight,$diet,$date_of_birth]);
-
-    return response()->json(['message' => 'family_member created successfully'], 201);
+        
+    $id = DB::table('family_member')->insertGetId([
+        'name' => $name,
+        'last_name' => $last_name,
+        'gender' => $gender,
+        'height' => $height,
+        'weight' => $weight,
+        'diet' => $diet,
+        'date_of_birth' => $date_of_birth,
+    ]);
+    return response()->json(['message' => 'User created successfully', 'id' => $id], 201);
 });
 
 
