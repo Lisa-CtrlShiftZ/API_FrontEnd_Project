@@ -2,6 +2,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
+use App\Http\Controllers\UserController;
 // use Illuminate\Support\Facades\DB;
 
 // Get all users
@@ -75,20 +76,35 @@ Route::delete('/user/{id}', function ($id) {
 // this is where the requests for login begin
 // ---------
 
-Route::post('/login', function (Request $request){
+Route::post('/login', function (Request $request){ 
     $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials)) {
 
+            $user = Auth::user();
+
             return response()->json([
                 'token' => Str::random(80),
+                'user' => $user
+                
             ]);
         }
 
-        return response()->json([
+        return response()->json([ 
             'message' => 'Invalid credentials'
         ], 401);
-} );
+} ); 
+
+//get family members for logged in user
+Route::get('/user/{user_id}/family_member', function ($user_id) {
+    try {
+        $userFamilyMembers = DB::select('SELECT * FROM family_member WHERE user_id = ?', [$user_id]);
+        return response()->json($userFamilyMembers);
+
+    } catch (Exception $e) {
+        return response()->json(['error' => 'User not found or another error occurred'], 404);
+    }
+});
 
 // ---------
 // this is where the requests for location begin
