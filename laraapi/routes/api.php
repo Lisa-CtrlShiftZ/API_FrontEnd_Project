@@ -516,6 +516,26 @@ Route::delete('/user_family_member/{id}', function ($id) {
     }
     return response()->json(['message' => 'user_family_member deleted successfully']);
 });
+////
+// TEST - GET 'STOCK'
+/////
+Route::get('/user/user_food/{user_id}', function ($user_id) {
+    $userStock = DB::table('user_food')
+    ->join('user', 'user.id', '=', 'user_food.user_id')
+    ->join('food', 'food.id', '=', 'user_food.food_id')
+    ->select(
+        'user_food.id',
+        'user_food.amount',
+        'user.id as user_id',
+        'user.name as user_name',
+        'food.id as food_id',
+        'food.name as food_name'
+    )
+    ->where('user.id', $user_id)
+    ->get();
+
+    return $userStock;
+});
 
 // ---------
 // this is where the requests for food connection to user begin
