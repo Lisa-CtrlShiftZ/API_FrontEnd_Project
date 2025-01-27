@@ -382,7 +382,7 @@ Route::post('/family_member', function (\Illuminate\Http\Request $request) {
     $weight = $request->input('weight');
     $diet = $request->input('diet');
     $date_of_birth = $request->input('date_of_birth');
-    DB::insert('INSERT INTO family_member (name,lastname,gender,height,weight,diet,date_of_birth) VALUES (?,?,?,?,?,?,?)', [$name, $lastname,$gender,$height,$weight,$diet,$date_of_birth]);
+    DB::insert('INSERT INTO family_member (name,last_name,gender,height,weight,diet,date_of_birth) VALUES (?,?,?,?,?,?,?)', [$name, $lastname,$gender,$height,$weight,$diet,$date_of_birth]);
 
     return response()->json(['message' => 'family_member created successfully'], 201);
 });
