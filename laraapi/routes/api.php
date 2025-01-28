@@ -248,12 +248,25 @@ Route::get('/food/{id}', function ($id) {
 
 // Create a new food
 Route::post('/food', function (\Illuminate\Http\Request $request) {
-    $name = $request->input('name');
-    $calories_per_kilo = $request->input('calories_per_kilo');
+    // had chatgpt help with this, but this will validate every value if it is the correct type to be send over
+    $validator = Validator::make($request->all(), [
+        'name' => 'required|string|max:255',
+        'calories_per_kilo' => 'required|numeric',
+        'protein' => 'required|numeric',
+        'carbohydrates' => 'required|numeric',
+        'fat' => 'required|numeric',
+    ]);
+    // this will then check if the validator if all of it is correct
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 400);
+    }
 
-   $id = DB::table('food')->insertGetId([
-        'name' => $name,
-        'calories_per_kilo' => $calories_per_kilo,
+    $id = DB::table('food')->insertGetId([
+        'name' => $request->input('name'),
+        'calories_per_kilo' => $request->input('calories_per_kilo'),
+        'protein' => $request->input('protein'),
+        'carbohydrates' => $request->input('carbohydrates'),
+        'fat' => $request->input('fat'),
     ]);
     return response()->json(['message' => 'User created successfully', 'id' => $id], 201);
 });
@@ -507,13 +520,25 @@ Route::delete('/user_family_member/{id}', function ($id) {
 // ---------
 
 Route::get('/user_food', function () {
-    $user_food = DB::select('SELECT * FROM user_food');
+    $user_food = DB::select(
+        'SELECT user_food.*, food.name AS food_name,  food.calories_per_kilo, carbohydrates, fat, protein
+         FROM user_food 
+         JOIN food ON user_food.food_id = food.id'
+    );
+
     return response()->json($user_food);
 });
 
 // Get a user - food connection by ID
 Route::get('/user_food/{id}', function ($id) {
-    $user_food = DB::select('SELECT * FROM user_food WHERE id = ?', [$id]);
+    $user_food = DB::select(
+        'SELECT user_food.*, food.name AS food_name, food.calories_per_kilo, carbohydrates, fat, protein
+         FROM user_food 
+         JOIN food ON user_food.food_id = food.id 
+         WHERE user_food.id = ?', 
+        [$id]
+    );
+
     if (empty($user_food)) {
         return response()->json(['message' => 'user_food not found'], 404);
     }
@@ -523,7 +548,7 @@ Route::get('/user_food/{id}', function ($id) {
 
 // Create a new user_food
 Route::post('/user_food', function (\Illuminate\Http\Request $request) {
-    $user_id = $request->input('User_id');
+    $user_id = $request->input('user_id');
     $food_id = $request->input('food_id');
     $expiration_date = $request->input('expiration_date');
     $amount = $request->input('amount');
