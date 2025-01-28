@@ -45,4 +45,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    use Notifiable;
+
+    // Specify the table name
+    protected $table = 'user';
 }
