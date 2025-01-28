@@ -516,26 +516,6 @@ Route::delete('/user_family_member/{id}', function ($id) {
     }
     return response()->json(['message' => 'user_family_member deleted successfully']);
 });
-////
-// TEST - GET 'STOCK'
-/////
-Route::get('/user/user_food/{user_id}', function ($user_id) {
-    $userStock = DB::table('user_food')
-    ->join('user', 'user.id', '=', 'user_food.user_id')
-    ->join('food', 'food.id', '=', 'user_food.food_id')
-    ->select(
-        'user_food.id',
-        'user_food.amount',
-        'user.id as user_id',
-        'user.name as user_name',
-        'food.id as food_id',
-        'food.name as food_name'
-    )
-    ->where('user.id', $user_id)
-    ->get();
-
-    return $userStock;
-});
 
 // ---------
 // this is where the requests for food connection to user begin
@@ -660,4 +640,35 @@ Route::delete('/user_supplies/{id}', function ($id) {
         return response()->json(['message' => 'user_supplies not found'], 404);
     }
     return response()->json(['message' => 'user_supplies deleted successfully']);
+});
+
+//-----
+// WIP - this is where the requests related to a specific user's supplies begin 
+//----
+Route::get('/user/{user_id}/supplies', function ($user_id) {
+    $userSupplies = DB::table('user_supplies')
+    ->join('user', 'user.id', '=', 'user_supplies.user_id')
+    ->join('supplies', 'supplies.id', '=', 'user_supplies.supply_id')
+    ->select(
+        'user_supplies.quantity',
+        'user.id as user_id',
+        'supplies.id as supply_id',
+        'supplies.name as supply_name'
+    )
+    ->where('user.id', $user_id)
+    ->get();
+
+    return response()->json($userSupplies);
+});
+
+Route::post('/user/{user_id}/supplies', function ($user_id) {
+    $supply_id = request('supply_id');
+    $quantity = request('quantity');
+
+    DB::table('user_supplies')->updateOrInsert(
+        ['user_id' => $user_id, 'supply_id' => $supply_id],
+        ['quantity' => $quantity]
+    );
+
+    return response()->json(['message' => 'Supply updated successfully']);
 });
