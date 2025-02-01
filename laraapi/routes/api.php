@@ -107,6 +107,31 @@ Route::get('/user/{user_id}/family_member', function ($user_id) {
 });
 
 // ---------
+// Password verification
+// ---------
+
+
+Route::post('/verifyPassword', function (\Illuminate\Http\Request $request) {
+    $userId = $request->input('userId');
+    $password = $request->input('password');
+
+    // Fetch user by ID
+    $user = \App\Models\User::find($userId);
+
+    if (!$user) {
+        return response()->json(['message' => 'User not found'], 404);
+    }
+
+    // Verify the password using Laravel's Hash facade
+    if (\Illuminate\Support\Facades\Hash::check($password, $user->password)) {
+        return response()->json(['valid' => true]);
+    }
+
+    return response()->json(['valid' => false], 400);
+});
+
+
+// ---------
 // this is where the requests for location begin
 // ---------
 
