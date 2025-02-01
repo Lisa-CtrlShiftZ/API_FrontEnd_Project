@@ -2,6 +2,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
+use App\Http\Controllers\UserController;
 // use Illuminate\Support\Facades\DB;
 
 // Get all users
@@ -84,20 +85,60 @@ Route::delete('/user/{id}', function ($id) {
 // this is where the requests for login begin
 // ---------
 
-Route::post('/login', function (Request $request){
+Route::post('/login', function (Request $request){ 
     $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials)) {
 
+            $user = Auth::user();
+
             return response()->json([
                 'token' => Str::random(80),
+                'user' => $user
+                
             ]);
         }
 
-        return response()->json([
+        return response()->json([ 
             'message' => 'Invalid credentials'
         ], 401);
-} );
+} ); 
+
+//get family members for logged in user
+Route::get('/user/{user_id}/family_member', function ($user_id) {
+    try {
+        $userFamilyMembers = DB::select('SELECT * FROM family_member WHERE user_id = ?', [$user_id]);
+        return response()->json($userFamilyMembers);
+
+    } catch (Exception $e) {
+        return response()->json(['error' => 'User not found or another error occurred'], 404);
+    }
+});
+
+// ---------
+// Password verification
+// ---------
+
+
+Route::post('/verifyPassword', function (\Illuminate\Http\Request $request) {
+    $userId = $request->input('userId');
+    $password = $request->input('password');
+
+    // Fetch user by ID
+    $user = \App\Models\User::find($userId);
+
+    if (!$user) {
+        return response()->json(['message' => 'User not found'], 404);
+    }
+
+    // Verify the password using Laravel's Hash facade
+    if (\Illuminate\Support\Facades\Hash::check($password, $user->password)) {
+        return response()->json(['valid' => true]);
+    }
+
+    return response()->json(['valid' => false], 400);
+});
+
 
 // ---------
 // this is where the requests for location begin
@@ -410,7 +451,7 @@ Route::get('/family_member', function () {
 
 // Get a family_member by ID
 Route::get('/family_member/{id}', function ($id) {
-    $family_member = DB::select('SELECT * FROM family_member WHERE id = ?', [$id]);
+    $family_member = DB::select('SELECT * FROM family_member WHERE user_id = ?', [$id]);
     if (empty($family_member)) {
         return response()->json(['message' => 'family_member not found'], 404);
     }
@@ -425,25 +466,28 @@ Route::post('/family_member', function (\Illuminate\Http\Request $request) {
     $gender = $request->input('gender');
     $height = $request->input('height');
     $weight = $request->input('weight');
-    $diet = $request->input('diet');
     $date_of_birth = $request->input('date_of_birth');
-        
-    $id = DB::table('family_member')->insertGetId([
-        'name' => $name,
-        'last_name' => $last_name,
-        'gender' => $gender,
-        'height' => $height,
-        'weight' => $weight,
-        'diet' => $diet,
-        'date_of_birth' => $date_of_birth,
-    ]);
-    return response()->json(['message' => 'User created successfully', 'id' => $id], 201);
+    $diet = $request->input('diet');
+    $user_id = $request ->input('user_id');
+
+    // Check if user_id is provided
+    if (empty($user_id)) {
+        return response()->json(['message' => 'user_id is required'], 400);
+    }
+
+    DB::insert('INSERT INTO family_member (name,last_name,gender,height,weight,date_of_birth,diet,user_id) VALUES (?,?,?,?,?,?,?,?)', [$name, $last_name,$gender,$height,$weight,$date_of_birth,$diet,$user_id]);
+
+    return response()->json(['message' => 'family_member created successfully'], 201);
+
 });
 
 
 Route::patch('/family_member/{id}', function (\Illuminate\Http\Request $request, $id) {
-    //AI was used for this request
-    $fields = $request->only(['name','last_name','gender','height', 'weight','diet','date_of_birth' ]); // Get only provided fields
+    \Log::info("PATCH request received for family member with ID: {$id}");
+
+    $fields = $request->only(['name','last_name','gender','height', 'weight','date_of_birth','diet','user_id' ]); // Get only provided fields
+    \Log::info('Fields to update: ', $fields);
+
     if (empty($fields)) {
         return response()->json(['message' => 'No data provided for update'], 400); // No fields to update
     }
@@ -459,8 +503,10 @@ Route::patch('/family_member/{id}', function (\Illuminate\Http\Request $request,
     $query = 'UPDATE family_member SET ' . implode(', ', $setClause) . ' WHERE id = ?';
     $affected = DB::update($query, $bindings);
     if ($affected === 0) {
+        \Log::info('No rows affected, family_member not found or no changes made.');
         return response()->json(['message' => 'family_member not found or no changes made'], 404);
     }
+    \Log::info('Successfully updated family member with ID: ' . $id);
     return response()->json(['message' => 'family_member updated successfully']);
 });
 
@@ -670,4 +716,45 @@ Route::delete('/user_supplies/{id}', function ($id) {
         return response()->json(['message' => 'user_supplies not found'], 404);
     }
     return response()->json(['message' => 'user_supplies deleted successfully']);
+});
+
+//-----
+// WIP - this is where the requests related to a specific user's supplies begin 
+//----
+Route::get('/user/{user_id}/supplies', function ($user_id) {
+    $userSupplies = DB::table('user_supplies')
+    ->join('user', 'user.id', '=', 'user_supplies.user_id')
+    ->join('supplies', 'supplies.id', '=', 'user_supplies.supply_id')
+    ->select(
+        'user_supplies.quantity',
+        'user.id as user_id',
+        'supplies.id as supply_id',
+        'supplies.name as supply_name'
+    )
+    ->where('user.id', $user_id)
+    ->get();
+
+    return response()->json($userSupplies);
+});
+
+Route::put('/user/{user_id}/supplies', function ($user_id) {
+    $supply_id = request('supply_id');
+    $quantity = request('quantity');
+
+    DB::table('user_supplies')->updateOrInsert(
+        ['user_id' => $user_id, 'supply_id' => $supply_id],
+        ['quantity' => $quantity]
+    );
+
+    return response()->json(['message' => 'Supply updated successfully']);
+});
+
+Route::delete('/user/{user_id}/supplies/{supply_id}', function ($user_id, $supply_id) {
+    // Delete the supply from the user's supplies
+    DB::table('user_supplies')
+        ->where('user_id', $user_id)
+        ->where('supply_id', $supply_id)
+        ->delete();
+
+    return response()->json(['message' => 'Supply deleted successfully']);
 });
