@@ -661,7 +661,7 @@ Route::get('/user/{user_id}/supplies', function ($user_id) {
     return response()->json($userSupplies);
 });
 
-Route::post('/user/{user_id}/supplies', function ($user_id) {
+Route::put('/user/{user_id}/supplies', function ($user_id) {
     $supply_id = request('supply_id');
     $quantity = request('quantity');
 
@@ -671,4 +671,14 @@ Route::post('/user/{user_id}/supplies', function ($user_id) {
     );
 
     return response()->json(['message' => 'Supply updated successfully']);
+});
+
+Route::delete('/user/{user_id}/supplies/{supply_id}', function ($user_id, $supply_id) {
+    // Delete the supply from the user's supplies
+    DB::table('user_supplies')
+        ->where('user_id', $user_id)
+        ->where('supply_id', $supply_id)
+        ->delete();
+
+    return response()->json(['message' => 'Supply deleted successfully']);
 });
