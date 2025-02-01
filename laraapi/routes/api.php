@@ -426,7 +426,7 @@ Route::get('/family_member', function () {
 
 // Get a family_member by ID
 Route::get('/family_member/{id}', function ($id) {
-    $family_member = DB::select('SELECT * FROM family_member WHERE id = ?', [$id]);
+    $family_member = DB::select('SELECT * FROM family_member WHERE user_id = ?', [$id]);
     if (empty($family_member)) {
         return response()->json(['message' => 'family_member not found'], 404);
     }
